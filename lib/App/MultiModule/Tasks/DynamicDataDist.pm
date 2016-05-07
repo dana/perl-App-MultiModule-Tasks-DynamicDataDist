@@ -94,6 +94,15 @@ sub _tick {
         my $current_slot = $epoch % $interval;
         foreach my $agent_name (keys %$data_group) {
             if(not $data_group->{$agent_name}->{slots}->{$current_slot}) {
+                my $message = {
+                    data_group => $data_group_name,
+                    agent_name => $agent_name,
+                    return_destination => 'who am I???',#TODO XXX we need a
+                                                        #standard way of 
+                                                        #knowing who we are
+                                                        #as overridden by 
+                                                        #$config->{my_agent_name}
+                };
                 #request this data
             }
             #TODO: here we should delete all older slots, except if we have
