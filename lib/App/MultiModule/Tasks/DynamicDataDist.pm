@@ -95,13 +95,18 @@ sub _tick {
         foreach my $agent_name (keys %$data_group) {
             if(not $data_group->{$agent_name}->{slots}->{$current_slot}) {
                 my $message = {
-                    data_group => $data_group_name,
-                    agent_name => $agent_name,
-                    return_destination => 'who am I???',#TODO XXX we need a
-                                                        #standard way of 
-                                                        #knowing who we are
-                                                        #as overridden by 
-                                                        #$config->{my_agent_name}
+                    dist_get_slots => [
+                        data_group => $data_group_name,
+                        agent_name => $agent_name,
+                        return_destination => 'who am I???',#TODO XXX we need a
+                                                            #standard way of 
+                                                            #knowing who we are
+                                                            #as overridden by 
+                                                            #$config->{my_agent_name}
+                        return_qname => 'DynamicDataDist',  #this needs to be
+                                                            #overridden by
+                                                            #$config->{_test_transit_translator}
+                    ]
                 };
                 #request this data
             }
