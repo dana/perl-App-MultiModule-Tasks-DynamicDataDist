@@ -75,7 +75,12 @@ sub _tick {
             slots => {}
         } unless $state->{data_groups}->{$data_group_name};
         my $data_group = $state->{data_groups}->{$data_group_name};
-
+        my $new_agents = {};
+        foreach my $agent_name (keys %{$state->{agents}}) {
+            if(mmatch($state->{agents}->{$agent_name}, $data_group_config->{match})) {
+                $new_agents->{$agent_name} = 1;
+            }
+        }
     }
 }
 
