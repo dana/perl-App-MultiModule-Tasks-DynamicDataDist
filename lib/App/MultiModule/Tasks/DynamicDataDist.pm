@@ -68,18 +68,41 @@ sub _tick {
 
     foreach my $data_group_name (keys %{$config->{data_groups}}) {
         my $data_group_config = $config->{data_groups}->{$data_group_name};
-        my $interval = $data_group_config->{interval} || 60;
-        my $epoch = time;
-        my $current_slot = $epoch % $interval;
         $state->{data_groups}->{$data_group_name} = {
             slots => {}
         } unless $state->{data_groups}->{$data_group_name};
         my $data_group = $state->{data_groups}->{$data_group_name};
-        my $new_agents = {};
-        foreach my $agent_name (keys %{$state->{agents}}) {
-            if(mmatch($state->{agents}->{$agent_name}, $data_group_config->{match})) {
-                $new_agents->{$agent_name} = 1;
+
+        #Here we need to delete all of the entries in $agent_group that
+        #do not match the criteria in $data_group_config->{match}, as applied
+        #to all of the agents listed in $state->{agents}
+        {   my $new_agents = {};
+            foreach my $agent_name (keys %{$state->{agents}}) {
+                if(mmatch($state->{agents}->{$agent_name}, $data_group_config->{match})) {
+                    $new_agents->{$agent_name} = 1;
+                }
             }
+            foreach my $agent_name (keys %$data_group) {
+                delete $data_group->{$agent_name} unless $new_agents->{$agent_name};
+            }
+        }
+
+        #Now, $agent_group only contains agents that belong.  Now we find all
+        #of those that do not have a current slot
+        my $interval = $data_group_config->{interval} || 60;
+        my $epoch = time;
+        my $current_slot = $epoch % $interval;
+        foreach my $agent_name (keys %$data_group) {
+            if(not $data_group->{$agent_name}->{slots}->{$current_slot}) {
+                #request this data
+            }
+            #TODO: here we should delete all older slots, except if we have
+            #config to keep some number of them.
+            #This should also be able to keep some number of slots with
+            #DIFFERENT data, no matter how old.  That is, keep the slots
+            #that marked the last three changes in data, no matter how old,
+            #and delete the rest.  This might be necessary for some of the
+            #plugins that require the last N keys
         }
     }
 }
