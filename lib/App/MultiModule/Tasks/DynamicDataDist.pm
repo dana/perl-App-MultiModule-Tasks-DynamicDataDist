@@ -93,23 +93,34 @@ sub _tick {
         my $epoch = time;
         my $current_slot = $epoch % $interval;
         foreach my $agent_name (keys %$data_group) {
+sub _send_request {
+    my $self = shift;
+    my %args = @_;
+    my $dist_get_slots = [];
+    foreach my $request (@{$args{dist_get_slots}}) {
+        push @$dist_get_slots, $request;
+    }
+    #XXX NOTE so I'm not going to send the return agent name, that's going
+    #to be pulled from IPC::Transit directly.  Of course, I need to upgrade
+    #IPC::Transit to include this.
+    #I will include the return qname here, as that's outside of the
+    #'security model' of IPC::Transit.  It will, of course, default to
+    #DynamicDataDist and be overridable for testing via $config->whatever
+    my $message = {
+        dist_get_slots => $dist_get_slots,
+    };
+    #IPC::Transit::send(qname => 'DynamicDataDist', destination => 
+}
             if(not $data_group->{$agent_name}->{slots}->{$current_slot}) {
-                my $message = {
-                    dist_get_slots => [
+                $self->_send_request(
+                    dist_set_slots => [
                         data_group => $data_group_name,
                         agent_name => $agent_name,
-                        return_destination => 'who am I???',#TODO XXX we need a
-                                                            #standard way of 
-                                                            #knowing who we are
-                                                            #as overridden by 
-                                                            #$config->{my_agent_name}
-                        return_qname => 'DynamicDataDist',  #this needs to be
-                                                            #overridden by
-                                                            #$config->{_test_transit_translator}
                     ]
-                };
-                #request this data
+                );
             }
+
+
             #TODO: here we should delete all older slots, except if we have
             #config to keep some number of them.
             #This should also be able to keep some number of slots with
